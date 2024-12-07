@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: service_with_observability
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
