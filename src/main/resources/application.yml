@@ -1,15 +1,60 @@
 spring:
+  cloud:
+    compatibility-verifier:
+      enabled: false
   application:
     name: service_with_observability
+#  sleuth:
+#    otlp:
+#      endpoint: http://localhost:4318
+#    enabled: true
+#    sampler:
+#      probability: 1.0
+
+springdoc:
+  api-docs:
+    path=/api-docs:
 
 management:
   endpoints:
     web:
       exposure:
-        include: metrics, health
+        include: health,metrics,prometheus
+
   metrics:
+    enable:
+      jvm: true
     export:
-      otlp:
+      prometheus:
         enabled: true
-        uri: http://localhost:4318/v1/metrics
+    tags:
+      application: service_with_observability-api
+    distribution:
+      slo:
+        http: '5ms,10ms,25ms,50ms,100ms,200ms,300ms,400ms,500ms,1s,2s'
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
         step: 10s
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+  include-application-name: false
+  level:
+    io:
+      opentelemetry: DEBUG
+#        exporter:
+#          otlp: DEBUG
